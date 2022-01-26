@@ -11,31 +11,47 @@ const bot = new Discord.Client({
 // we make a new system for the cmds
 bot.commands = new Discord.Collection();
 
-const generateImage = require("./commands/generateImage")
+const { readdirSync, read } = require('fs');
 
-const hisinhImage = require("./commands/hisinhImage")
+const commandFolders = readdirSync('./commands');
+
+const Timeout = new Discord.Collection();
+
+const generateImage = require("./commands/lenh/generateImage")
+
+const hisinhImage = require("./commands/lenh/hisinhImage")
 
 const { token } = require('./config.json');
 
-const { readdirSync, read } = require('fs');
-
-const { join } = require('path');
 
 require("dotenv").config()
 
 const prefix = '>';
 
-const Canvacord = require('canvacord');
+const mongoose = require('mongoose');
+mongoose.connect('mongodb+srv://thanhtrong:trong21082006@cluster0.onuou.mongodb.net/Data', {
+}).then(console.log('Connected to mongo!'))
 
-const db = require('quick.db')
+//levels
+const Levels = require('discord-xp');
 
-//Anime API
-const API = require('anime-images-api');
-
-const image_api = new API();
+Levels.setURL("mongodb+srv://thanhtrong:trong21082006@cluster0.onuou.mongodb.net/Data")
 
 //Welcome
 const welcomeChannelId = "932450574392258640"
+
+//Command Handler------------------------------------------------------------------------------
+for (const folder of commandFolders) {
+    const commandFiles = readdirSync(`./commands/${folder}`).filter(file => file.endsWith('.js'));
+    for (const file of commandFiles) {
+        const command = require(`./commands/${folder}/${file}`);
+        bot.commands.set(command.name, command);
+    }
+}
+
+
+bot.on("error", console.error);
+//-----------------------------------------------------------------------------------
 
 bot.on("guildMemberAdd", async (member) => {
     const img = await generateImage(member)
@@ -58,15 +74,6 @@ bot.on("guildMemberRemove", async (member) => {
 })
 //---------------------------------
 
-const commandFiles = readdirSync(join(__dirname, "commands")).filter(file => file.endsWith(".js"));
-
-for (const file of commandFiles) {
-    const  command = require(join(__dirname, "commands", `${file}`));
-    bot.commands.set(command.name, command);
-}
-
-bot.on("error", console.error);
-
 //----------------------------------------------------------
 bot.on('ready', () => {
     console.log('Bot đã sẵn sàng!');
@@ -74,22 +81,143 @@ bot.on('ready', () => {
 })
 //----------------------------------------------------------
 
+const lvlschema = require('./Schema/lvltoggle');
 bot.on("message", async message => {
 
     if(message.author.bot) return;
     if(message.channel.type === 'dm') return;
 
-    if(message.content.startsWith(prefix)) {
+    lvlschema.findOne({ guildId: message.guild.id}, async (e, data) => {
+        if(!data) {
+            new lvlschema({
+                guildId: message.guild.id,
+                toggle: 1,
+            }).save();
+            return;
+        };
+
+        if(data.toggle == 1) {
+            //Levels
+            const randomAmountOfXp = Math.floor(Math.random() * 29) + 1; // Min 1, Max 30
+            const hasLeveledUp = await Levels.appendXp(message.author.id, message.guild.id, randomAmountOfXp);
+            if (hasLeveledUp) {
+                const user = await Levels.fetch(message.author.id, message.guild.id);
+                message.channel.send(`${message.author}, Chúc mừng! Bạn đã lên level **${user.level}**! Bạn nhận được Role: Level ${user.level}!`);
+
+                if (user.level == 1) {
+                    let role = message.guild.roles.cache.find(role => role.name == "Level 1");
+                    if (!role) await message.guild.roles.create({
+                        data: {
+                            name: "Level 1",
+                            color: "#00f8ff",
+                        }
+                    }).catch(err => console.log(err));
+                    role = message.guild.roles.cache.find(role => role.name == "Level 1");
+                    if (message.member.roles.cache.has(role.id)) return;
+                    else await message.member.roles.add(role.id);
+                }
+
+                if (user.level == 2) {
+                    let role = message.guild.roles.cache.find(role => role.name == "Level 2");
+                    if (!role) await message.guild.roles.create({
+                        data: {
+                            name: "Level 2",
+                            color: "#00ff89",
+                        }
+                    }).catch(err => console.log(err));
+                    role = message.guild.roles.cache.find(role => role.name == "Level 2");
+                    if (message.member.roles.cache.has(role.id)) return;
+                    else await message.member.roles.add(role.id);
+                }
+
+                if (user.level == 3) {
+                    let role = message.guild.roles.cache.find(role => role.name == "Level 3");
+                    if (!role) await message.guild.roles.create({
+                        data: {
+                            name: "Level 3",
+                            color: "#a2ff00",
+                        }
+                    }).catch(err => console.log(err));
+                    role = message.guild.roles.cache.find(role => role.name == "Level 3");
+                    if (message.member.roles.cache.has(role.id)) return;
+                    else await message.member.roles.add(role.id);
+                }
+
+                if (user.level == 4) {
+                    let role = message.guild.roles.cache.find(role => role.name == "Level 4");
+                    if (!role) await message.guild.roles.create({
+                        data: {
+                            name: "Level 4",
+                            color: "#b000ff",
+                        }
+                    }).catch(err => console.log(err));
+                    role = message.guild.roles.cache.find(role => role.name == "Level 4");
+                    if (message.member.roles.cache.has(role.id)) return;
+                    else await message.member.roles.add(role.id);
+                }
+
+                if (user.level == 5) {
+                    let role = message.guild.roles.cache.find(role => role.name == "Master");
+                    if (!role) await message.guild.roles.create({
+                        data: {
+                            name: "Master",
+                            color: "#daff00",
+                        }
+                    }).catch(err => console.log(err));
+                    role = message.guild.roles.cache.find(role => role.name == "Master");
+                    if (message.member.roles.cache.has(role.id)) return;
+                    else await message.member.roles.add(role.id);
+                }
+
+                if (user.level == 10) {
+                    let role = message.guild.roles.cache.find(role => role.name == "Grandmaster");
+                    if (!role) await message.guild.roles.create({
+                        data: {
+                            name: "Grandmaster",
+                            color: "#ff7d00",
+                        }
+                    }).catch(err => console.log(err));
+                    role = message.guild.roles.cache.find(role => role.name == "Grandmaster");
+                    if (message.member.roles.cache.has(role.id)) return;
+                    else await message.member.roles.add(role.id);
+                }
+
+                if (user.level == 15) {
+                    let role = message.guild.roles.cache.find(role => role.name == "Anh Hùng Bàn Phím");
+                    if (!role) await message.guild.roles.create({
+                        data: {
+                            name: "Anh Hùng Bàn Phím",
+                            color: "#ff0000",
+                        }
+                    }).catch(err => console.log(err));
+                    role = message.guild.roles.cache.find(role => role.name == "Anh Hùng Bàn Phím");
+                    if (message.member.roles.cache.has(role.id)) return;
+                    else await message.member.roles.add(role.id);
+                }
+            }
+            //
+        } else if(data.toggle == 0) {
+            //
+        }
+    })
+
+    if (message.content.startsWith(prefix)) {
         const args = message.content.slice(prefix.length).trim().split(/ +/);
 
-        const command = args.shift().toLowerCase();
+        const commandName = args.shift().toLowerCase();
 
-        if(!bot.commands.has(command)) return;
+        const command = bot.commands.get(commandName) || bot.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
+        if (!command) return;
 
-        try {
-            bot.commands.get(command).run(bot, message, args);
-        } catch (error){
-            console.error(error);
+        if (command) {
+            if (command.cooldown) {
+                if (Timeout.has(`${command.name}${message.author.id}`)) return message.channel.send(`Please Wait \`${ms(Timeout.get(`${command.name}${message.author.id}`) - Date.now(), { long: true })}\` Before using this command again!`);
+                command.run(bot, message, args)
+                Timeout.set(`${command.name}${message.author.id}`, Date.now() + command.cooldown)
+                setTimeout(() => {
+                    Timeout.delete(`${command.name}${message.author.id}`)
+                }, command.cooldown)
+            } else command.run(bot, message, args);
         }
     }
 })
@@ -109,15 +237,6 @@ bot.on('message', message => {
     }
 })
 //----------------------------------------------------------------------
-
-//Anime 
-bot.on('message', message => {
-    if(message.content.startsWith(`${prefix}animee`)) {
-        image_api.sfw.pat().then(response => {
-            message.channel.send(response.image)
-        })
-    }
-})
 
 //Anti Spam
 const usersMap = new Map();
@@ -187,52 +306,6 @@ bot.on('message', async(message) => {
             lastMessage : message,
             timer : fn
         });
-    }
-})
-//-----------------------------------------------------------------
-
-
-//Xp-Rank
-bot.on("message", async (message, guild) => {
-    xp(message)
-    if(message.content.startsWith(`${prefix}rank`)) {
-    if(message.author.bot) return;
-    var user = message.mentions.users.first() || message.author;
-    var level = db.fetch(`guild_${message.guild.id}_level_${user.id}`) || 0;
-    var currentxp = db.fetch(`guild_${message.guild.id}_xp_${user.id}`) || 0;
-    var xpNeeded = level * 500 + 500 // 500 + 1000 + 1500
-    const rankcard = new Canvacord.Rank()
-        .setAvatar(user.displayAvatarURL({format: 'png', dynamic: true}))
-        .setCurrentXP(db.fetch(`guild_${message.guild.id}_xp_${user.id}`) || 0)
-        .setRequiredXP(xpNeeded)
-        .setStatus(user.presence.status)
-        .setLevel(db.fetch(`guild_${message.guild.id}_level_${user.id}`) || 0)
-        .setRank(1, 'RANK', false)
-        .setProgressBar("#a81d16", "COLOR")
-        .setOverlay("#000000")
-        .setUsername(user.username)
-        .setDiscriminator(user.discriminator)
-        .setBackground("COLOR", "#808080")
-        rankcard.build()
-        .then(data => {
-            const atta = new Discord.MessageAttachment(data, "rank.png")
-            message.channel.send(atta)
-        })
-    }
-
-    function xp(message) {
-        if(message.author.bot) return
-        const randomNumber = Math.floor(Math.random() * 10) + 15;
-        db.add(`guild_${message.guild.id}_xp_${message.author.id}`, randomNumber) 
-        db.add(`guild_${message.guild.id}_xptotal_${message.author.id}`, randomNumber)
-        var level = db.get(`guild_${message.guild.id}_level_${message.author.id}`) || 1
-        var xp = db.get(`guild_${message.guild.id}_xp_${message.author.id}`)
-        var xpNeeded = level * 500;
-        if(xpNeeded < xp){
-            var newLevel = db.add(`guild_${message.guild.id}_level_${message.author.id}`, 1) 
-            db.subtract(`guild_${message.guild.id}_xp_${message.author.id}`, xpNeeded)
-            message.channel.send(`Chúc mừng ${message.author}, bạn đã lên level, level hiện tại của bạn là level ${newLevel}`)
-        }
     }
 })
 //-----------------------------------------------------------------

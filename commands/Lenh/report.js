@@ -28,8 +28,10 @@ module.exports = {
             { name: "Báo cáo Tag", value: `${user.tag}`, inline: true},
             { name: "Lý do", value: `${reason}`, inline: true}
         )
+        Channel.send("<@786586849484341269>")
         Channel.send(embed)
         message.channel.send('Đã gửi báo cáo thành công, vui lòng chờ 1 đến 24 giờ để admin xem xét!')
+        message.channel.send('Đọc đơn báo cáo tại đây 👉 <#932622970294263898>')
     
     }
 }
