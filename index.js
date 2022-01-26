@@ -17,9 +17,9 @@ const commandFolders = readdirSync('./commands');
 
 const Timeout = new Discord.Collection();
 
-const generateImage = require("./commands/lenh/generateImage")
+const generateImage = require("./commands/Lenh/generateImage")
 
-const hisinhImage = require("./commands/lenh/hisinhImage")
+const hisinhImage = require("./commands/Lenh/hisinhImage")
 
 const { token } = require('./config.json');
 
