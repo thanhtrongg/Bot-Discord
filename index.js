@@ -4,7 +4,8 @@ const bot = new Discord.Client({
     intents: [
         "GUILDS",
         "GUILD_MESSAGES",
-        "GUILD_MEMBERS"
+        "GUILD_MEMBERS",
+        "GUILD_VOICE_STATES"
     ]
 })
 
@@ -222,22 +223,6 @@ bot.on("message", async message => {
     }
 })
 
-//Music------------------------------------------------------------------
-bot.on('message', message => {
-    if(!message.content.startsWith(prefix) || message.author.bot) return;
-
-    const args = message.content.slice(prefix.length).trim().split(/ +/);
-    const command = args.shift().toLowerCase();
-    if(command === 'clear') {
-        bot.commands.get('clear').execute(message, args);
-    } else if(command === 'play') {
-        bot.commands.get('play').execute(message, args);
-    } else if(command === 'leave') {
-        bot.commands.get('leave').execute(message, args);
-    }
-})
-//----------------------------------------------------------------------
-
 //Anti Spam
 const usersMap = new Map();
 const LIMIT = 5;
@@ -308,7 +293,20 @@ bot.on('message', async(message) => {
         });
     }
 })
-//-----------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------------\\
+const distube = require('distube');
+bot.distube = new distube(bot, { searchSongs: false, emitNewSongOnly: true })
+bot.distube
+    .on('playSong', (message, queue, song) => message.channel.send(
+        `Nghe bài \`${song.name}\` - \`${song.formattedDuration}\`\nThành viên yêu cầu: ${song.user}`,
+    ))
+    .on('addSong', (message, queue, song) => message.channel.send(
+        `Thêm bài ${song.name} - \`${song.formattedDuration}\` vào hàng đợi bởi ${song.user}`,
+    ))
+    .on('error', (message, e) => {
+		//console.error(e)
+		message.channel.send(`Đã xảy ra lỗi: ${e}`)
+	})
 
 
 bot.login(token);
