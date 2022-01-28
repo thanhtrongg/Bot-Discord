@@ -24,8 +24,9 @@ const hisinhImage = require("./commands/Lenh/hisinhImage")
 
 const { token } = require('./config.json');
 
-
 require("dotenv").config()
+
+const db = require('quick.db')
 
 const prefix = '>';
 
