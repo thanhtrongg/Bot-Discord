@@ -226,11 +226,12 @@ bot.on("message", async message => {
 //Anti Spam
 const usersMap = new Map();
 const LIMIT = 5;
-const TIME = 120000;
+const TIME = 60000;
 const DIFF = 10000;
 
 bot.on('message', async(message) => {
     if(message.author.bot) return;
+    if(db.has(`antispam-${message.guild.id}`) === false) return;
     if(usersMap.has(message.author.id)) {
         const userData = usersMap.get(message.author.id);
         const { lastMessage, timer } = userData;
