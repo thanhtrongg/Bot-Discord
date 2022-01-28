@@ -226,7 +226,7 @@ bot.on("message", async message => {
 
 //Anti Spam
 const usersMap = new Map();
-const LIMIT = 5;
+const LIMIT = 3;
 const TIME = 60000;
 const DIFF = 10000;
 
