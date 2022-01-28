@@ -270,10 +270,10 @@ bot.on('message', async(message) => {
                     }
                 }
                 message.member.roles.add(muterole);
-                message.channel.send('Bạn đã spam link sẽ gầy quá nhiều, bạn đã bị mute!');
+                message.channel.send(`${message.author}, Địt mẹ thằng loz, sống chậm lại giúp tao!`);
                 setTimeout(() => {
                     message.member.roles.remove(muterole);
-                    message.channel.send('Bạn đã được unmute!')
+                    message.channel.send(`Thằng loz mang tên ${message.author} đã được unmute!`)
                 }, TIME);
             } else {
                 userData.msgCount = msgCount;

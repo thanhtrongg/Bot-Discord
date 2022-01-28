@@ -9,7 +9,7 @@ module.exports = {
             await db.set(`antispam-${message.guild.id}`, true)
             message.channel.send('Đã bật chức năng chống spam')
         } else if(args[0] === 'off') {
-            await db.set(`antispam-${message.guild.id}`, false)
+            await db.delete(`antispam-${message.guild.id}`)
             message.channel.send('Đã tắt chức năng chống spam')
         }
     }
