@@ -104,7 +104,7 @@ bot.on("message", async message => {
             const hasLeveledUp = await Levels.appendXp(message.author.id, message.guild.id, randomAmountOfXp);
             if (hasLeveledUp) {
                 const user = await Levels.fetch(message.author.id, message.guild.id);
-                message.channel.send(`${message.author}, Chúc mừng! Bạn đã lên level **${user.level}**! Bạn nhận được Role: Level ${user.level}!`);
+                message.channel.send(`${message.author}, Chúc mừng! Bạn đã lên level **${user.level}**!`);
 
                 if (user.level == 1) {
                     let role = message.guild.roles.cache.find(role => role.name == "Level 1");
