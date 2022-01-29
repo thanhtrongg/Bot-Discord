@@ -104,7 +104,7 @@ bot.on("message", async message => {
             const hasLeveledUp = await Levels.appendXp(message.author.id, message.guild.id, randomAmountOfXp);
             if (hasLeveledUp) {
                 const user = await Levels.fetch(message.author.id, message.guild.id);
-                message.channel.send(`${message.author}, Chúc mừng! Bạn đã lên level **${user.level}**!`);
+                bot.channels.cache.get('936863184659300452').send(`${message.author}, Chúc mừng! Bạn đã lên level **${user.level}**!`);
 
                 if (user.level == 1) {
                     let role = message.guild.roles.cache.find(role => role.name == "Level 1");
@@ -272,10 +272,10 @@ bot.on('message', async(message) => {
                     }
                 }
                 message.member.roles.add(muterole);
-                message.channel.send(`${message.author}, Địt mẹ thằng loz, sống chậm lại giúp tao!`);
+                bot.channels.cache.get('936863184659300452').send(`${message.author}, sống chậm lại nào!`);
                 setTimeout(() => {
                     message.member.roles.remove(muterole);
-                    message.channel.send(`Thằng loz mang tên ${message.author} đã được unmute!`)
+                    bot.channels.cache.get('936863184659300452').send(`${message.author} đã được unmute!`)
                 }, TIME);
             } else {
                 userData.msgCount = msgCount;
