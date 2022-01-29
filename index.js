@@ -226,7 +226,7 @@ bot.on("message", async message => {
 
 //Anti Spam
 const usersMap = new Map();
-const LIMIT = 3;
+const LIMIT = 10;
 const TIME = 60000;
 const DIFF = 10000;
 
@@ -309,6 +309,5 @@ bot.distube
 		//console.error(e)
 		message.channel.send(`Đã xảy ra lỗi: ${e}`)
 	})
-
 
 bot.login(token);
