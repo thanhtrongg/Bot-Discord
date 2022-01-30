@@ -310,4 +310,5 @@ bot.distube
 		message.channel.send(`Đã xảy ra lỗi: ${e}`)
 	})
 
+
 bot.login(token);
