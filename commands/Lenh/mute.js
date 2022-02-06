@@ -27,7 +27,7 @@ module.exports = {
         if(!time) return msg.reply('Bạn chưa nhập thời gian mute!');
     
         var reason = args.splice(2).join(' ');
-        if(!reason) return msg.reply('Bạn cần phải nhập lý dó!');
+        if(!reason) return msg.reply('Bạn cần phải nhập lý do!');
     
         var channel = msg.guild.channels.cache.find(c => c.name === 'mute');
     
@@ -37,7 +37,7 @@ module.exports = {
         .addField('Bởi:', msg.author, true)
         .addField('Thời gian bị muted:', rawTime)
         .addField('Lý do:', reason)
-        channel.send(log);
+        msg.channel.send(log);
     
         var embed = new Discord.MessageEmbed()
         .setTitle('Bạn đã bị muted!')
@@ -58,6 +58,6 @@ module.exports = {
             member.roles.remove(role);
         }, time);
     
-        msg.channel.send(`**${user}** đã bị muted bời **${msg.author}** trong vòng **${rawTime}**!`);
+        //msg.channel.send(`**${user}** đã bị muted bời **${msg.author}** trong vòng **${rawTime}**!`);
     }
 }
