@@ -2,7 +2,7 @@ const discord = require('discord.js')
 
 module.exports = {
     name: "report",
-    aliases: [],
+    aliases: ['rp'],
 
     run : async (bot, message, args) => {
     
