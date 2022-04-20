@@ -40,7 +40,7 @@ const Levels = require('discord-xp');
 Levels.setURL("mongodb+srv://thanhtrong:trong21082006@cluster0.onuou.mongodb.net/Data")
 
 //Welcome
-const welcomeChannelId = "932450574392258640"
+const welcomeChannelId = "966003221799792722"
 
 //Command Handler------------------------------------------------------------------------------
 for (const folder of commandFolders) {
@@ -66,7 +66,7 @@ bot.on("guildMemberAdd", async (member) => {
 //---------------------------------
 
 //Goodbye
-const goodbyeChannelId = "932455907000983563"
+const goodbyeChannelId = "966231780275413032"
 
 bot.on("guildMemberRemove", async (member) => {
     const img = await hisinhImage(member)
@@ -105,7 +105,7 @@ bot.on("message", async message => {
             const hasLeveledUp = await Levels.appendXp(message.author.id, message.guild.id, randomAmountOfXp);
             if (hasLeveledUp) {
                 const user = await Levels.fetch(message.author.id, message.guild.id);
-                bot.channels.cache.get('936863184659300452').send(`${message.author}, Chúc mừng! Bạn đã lên level **${user.level}**!`);
+                bot.channels.cache.get('966237517059862610').send(`${message.author}, Chúc mừng! Bạn đã lên level **${user.level}**!`);
 
                 if (user.level == 1) {
                     let role = message.guild.roles.cache.find(role => role.name == "Level 1");
@@ -273,10 +273,10 @@ bot.on('message', async(message) => {
                     }
                 }
                 message.member.roles.add(muterole);
-                bot.channels.cache.get('936863184659300452').send(`${message.author}, sống chậm lại nào!`);
+                bot.channels.cache.get('966237517059862610').send(`${message.author}, sống chậm lại nào!`);
                 setTimeout(() => {
                     message.member.roles.remove(muterole);
-                    bot.channels.cache.get('936863184659300452').send(`${message.author} đã được unmute!`)
+                    bot.channels.cache.get('966237517059862610').send(`${message.author} đã được unmute!`)
                 }, TIME);
             } else {
                 userData.msgCount = msgCount;
