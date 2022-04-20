@@ -81,7 +81,6 @@ bot.on("guildMemberRemove", async (member) => {
 bot.on('ready', () => {
     console.log('Bot đã sẵn sàng!');
     bot.user.setActivity('Tao là một con bot đa năng');
-    bot.user.setUsername("Bot Nguuu");
 })
 //----------------------------------------------------------
 
