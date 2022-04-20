@@ -55,6 +55,7 @@ for (const folder of commandFolders) {
 bot.on("error", console.error);
 //-----------------------------------------------------------------------------------
 
+//Welcome
 bot.on("guildMemberAdd", async (member) => {
     const img = await generateImage(member)
     member.guild.channels.cache.get(welcomeChannelId).send({
@@ -80,6 +81,7 @@ bot.on("guildMemberRemove", async (member) => {
 bot.on('ready', () => {
     console.log('Bot đã sẵn sàng!');
     bot.user.setActivity('Tao là một con bot đa năng');
+    bot.user.setUsername("Bot Nguuu");
 })
 //----------------------------------------------------------
 

@@ -18,7 +18,7 @@ module.exports = {
     
         const embed = new discord.MessageEmbed()
         .setTitle('Báo cáo mới!')
-        .setDescription(`Người dùng \`${message.author.tag}\` đã người báo cáo người dùng \`${user.tag}\`!`)
+        .setDescription(`Người dùng \`${message.author.tag}\` đã báo cáo người dùng \`${user.tag}\`!`)
         .setColor("RED")
         .setThumbnail(Avatar)
         .addFields(
