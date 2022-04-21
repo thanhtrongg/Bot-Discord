@@ -6,22 +6,22 @@ module.exports = {
 
     async run (bot, message, args) {
         const channelID = message.mentions.channels.first();
-        if(!channelID) return message.reply("Vui lòng chỉ định kênh hợp lệ mà bạn muốn gửi nội dung nhúng vào!\n `VD: .role #<channel> <Mô tả>`")
+        if(!channelID) return message.reply("Chọn channel\n `Ví dụ: >role #<channel> <mô tả>`")
 
         const desc = args.slice(1).join(" ")
-        if(!desc) return message.reply("Vui lòng thêm mô tả!\n `VD: .role #<channel> <Mô tả>`")
+        if(!desc) return message.reply("Cho mô tả\n `Ví dụ: >role #<channel> <mô tả>`")
 
 
-        const Role1 = message.guild.roles.cache.find(role => role.name === "Minh Quyền Năng")
-        const Role2 = message.guild.roles.cache.find(role => role.name === "boss")
+        const Role1 = message.guild.roles.cache.find(role => role.name === "DARK MEMBER")
+        const Role2 = message.guild.roles.cache.find(role => role.name === "NSFW MEMBER")
 
-        const emoji1 = '👍';
-        const emoji2 = '👎';
+        const emoji1 = '👿';
+        const emoji2 = '🔞';
 
 
         let embed = new MessageEmbed()
         .setColor("RANDOM")
-        .setTitle("Lấy Role Quyền Cao")
+        .setTitle("ROLE")
         .setDescription(desc)
 
         let msgembed = await channelID.send(embed)

@@ -39,7 +39,8 @@
     "ultrax": "^1.7.13",
     "wokcommands": "^1.5.3",
     "xargs": "^1.1.3",
-    "yarn": "^1.22.17"
+    "yarn": "^1.22.17",
+    "ytdl-core": "^4.11.0"
   },
   "directories": {
     "doc": "doc"

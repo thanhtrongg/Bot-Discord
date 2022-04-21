@@ -59,7 +59,7 @@ bot.on("error", console.error);
 bot.on("guildMemberAdd", async (member) => {
     const img = await generateImage(member)
     member.guild.channels.cache.get(welcomeChannelId).send({
-        content: `<@${member.id}> Chào mừng bạn đã đến đây 👋 vui lòng đọc quy định của nhóm tại đây 👉 <#932205722958176266>`,
+        content: `<@${member.id}> Chào mừng bạn đã đến đây 👋 vui lòng đọc quy định của nhóm tại đây 👉 <#966234935880974346>`,
         files: [img]
     })
 })
@@ -228,7 +228,7 @@ bot.on("message", async message => {
 //Anti Spam
 const usersMap = new Map();
 const LIMIT = 5;
-const TIME = 60000;
+const TIME = 20000;
 const DIFF = 10000;
 
 bot.on('message', async(message) => {
