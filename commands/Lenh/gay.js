@@ -2,7 +2,7 @@ const Discord = require('discord.js')
 
 module.exports = {
     name: "gay",
-    description: "a howgay command",
+    description: "gay lỏd",
 
     async run (bot, message, args) {
         let member = message.mentions.users.first() || message.author
