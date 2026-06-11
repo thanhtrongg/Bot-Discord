@@ -1,43 +1,65 @@
 const Discord = require('discord.js')
+require('./utils/discord-v12-compat')(Discord)
+
+const {
+    ActivityType,
+    ChannelType,
+    Collection,
+    GatewayIntentBits,
+    Partials,
+} = Discord
 
 const bot = new Discord.Client({
     intents: [
-        "GUILDS",
-        "GUILD_MESSAGES",
-        "GUILD_MEMBERS",
-        "GUILD_VOICE_STATES"
-    ]
+        GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.GuildMembers,
+        GatewayIntentBits.GuildVoiceStates,
+        GatewayIntentBits.GuildMessageReactions,
+        GatewayIntentBits.MessageContent,
+    ],
+    partials: [
+        Partials.Message,
+        Partials.Channel,
+        Partials.Reaction,
+    ],
 })
 
 // we make a new system for the cmds
-bot.commands = new Discord.Collection();
+bot.commands = new Collection();
 
-const { readdirSync, read } = require('fs');
+const { readdirSync } = require('fs');
 
 const commandFolders = readdirSync('./commands');
 
-const Timeout = new Discord.Collection();
+const Timeout = new Collection();
 
 const generateImage = require("./commands/Lenh/generateImage")
 
 const hisinhImage = require("./commands/Lenh/hisinhImage")
 
-const { token } = require('./config.json');
-
 require("dotenv").config()
 
-const db = require('quick.db')
+const requiredEnv = ["DISCORD_TOKEN", "MONGODB_URI"];
+const missingEnv = requiredEnv.filter((key) => !process.env[key]);
+
+if (missingEnv.length > 0) {
+    console.error(`Missing required environment variables: ${missingEnv.join(", ")}`);
+    process.exit(1);
+}
+
+const { DISCORD_TOKEN, MONGODB_URI } = process.env;
+
+const ms = require('ms');
 
 const prefix = '>';
 
 const mongoose = require('mongoose');
-mongoose.connect('mongodb+srv://thanhtrong:trong21082006@cluster0.onuou.mongodb.net/Data', {
-}).then(console.log('Connected to mongo!'))
 
 //levels
-const Levels = require('discord-xp');
+const Levels = require('./utils/levels');
 
-Levels.setURL("mongodb+srv://thanhtrong:trong21082006@cluster0.onuou.mongodb.net/Data")
+const GuildSettings = require('./Schema/guildSettings');
 
 //Welcome
 const welcomeChannelId = "966003221799792722"
@@ -58,7 +80,9 @@ bot.on("error", console.error);
 //Welcome
 bot.on("guildMemberAdd", async (member) => {
     const img = await generateImage(member)
-    member.guild.channels.cache.get(welcomeChannelId).send({
+    const channel = member.guild.channels.cache.get(welcomeChannelId)
+    if (!channel) return
+    channel.send({
         content: `<@${member.id}> Chào mừng bạn đã đến đây 👋 vui lòng đọc quy định của nhóm tại đây 👉 <#966234935880974346>`,
         files: [img]
     })
@@ -70,7 +94,9 @@ const goodbyeChannelId = "966231780275413032"
 
 bot.on("guildMemberRemove", async (member) => {
     const img = await hisinhImage(member)
-    member.guild.channels.cache.get(goodbyeChannelId).send({
+    const channel = member.guild.channels.cache.get(goodbyeChannelId)
+    if (!channel) return
+    channel.send({
         content: `<@${member.id}> đã hi sinh. Chúng ta hãy khuất mặt niệm cho người chiến sĩ đã hi sinh này nào!`,
         files: [img]
     })
@@ -78,131 +104,114 @@ bot.on("guildMemberRemove", async (member) => {
 //---------------------------------
 
 //----------------------------------------------------------
-bot.on('ready', () => {
+bot.on('clientReady', () => {
     console.log('Bot đã sẵn sàng!');
-    bot.user.setActivity('Tao là một con bot đa năng');
+    bot.user.setActivity('Tao là một con bot đa năng', { type: ActivityType.Playing });
 })
 //----------------------------------------------------------
 
 const lvlschema = require('./Schema/lvltoggle');
-bot.on("message", async message => {
+bot.on("messageCreate", async message => {
 
     if(message.author.bot) return;
-    if(message.channel.type === 'dm') return;
+    if(message.channel.type === ChannelType.DM) return;
 
-    lvlschema.findOne({ guildId: message.guild.id}, async (e, data) => {
-        if(!data) {
-            new lvlschema({
+    let data = await lvlschema.findOne({ guildId: message.guild.id});
+    if(!data) {
+        data = await lvlschema.create({
                 guildId: message.guild.id,
                 toggle: 1,
-            }).save();
-            return;
-        };
+        });
+    };
 
-        if(data.toggle == 1) {
-            //Levels
-            const randomAmountOfXp = Math.floor(Math.random() * 29) + 1; // Min 1, Max 30
-            const hasLeveledUp = await Levels.appendXp(message.author.id, message.guild.id, randomAmountOfXp);
-            if (hasLeveledUp) {
-                const user = await Levels.fetch(message.author.id, message.guild.id);
-                bot.channels.cache.get('966237517059862610').send(`${message.author}, Chúc mừng! Bạn đã lên level **${user.level}**!`);
+    if(data.toggle == 1) {
+        //Levels
+        const randomAmountOfXp = Math.floor(Math.random() * 29) + 1; // Min 1, Max 30
+        const hasLeveledUp = await Levels.appendXp(message.author.id, message.guild.id, randomAmountOfXp);
+        if (hasLeveledUp) {
+            const user = await Levels.fetch(message.author.id, message.guild.id);
+            bot.channels.cache.get('966237517059862610')?.send(`${message.author}, Chúc mừng! Bạn đã lên level **${user.level}**!`);
 
-                if (user.level == 1) {
-                    let role = message.guild.roles.cache.find(role => role.name == "Level 1");
-                    if (!role) await message.guild.roles.create({
-                        data: {
-                            name: "Level 1",
-                            color: "#00f8ff",
-                        }
-                    }).catch(err => console.log(err));
-                    role = message.guild.roles.cache.find(role => role.name == "Level 1");
-                    if (message.member.roles.cache.has(role.id)) return;
-                    else await message.member.roles.add(role.id);
-                }
-
-                if (user.level == 2) {
-                    let role = message.guild.roles.cache.find(role => role.name == "Level 2");
-                    if (!role) await message.guild.roles.create({
-                        data: {
-                            name: "Level 2",
-                            color: "#00ff89",
-                        }
-                    }).catch(err => console.log(err));
-                    role = message.guild.roles.cache.find(role => role.name == "Level 2");
-                    if (message.member.roles.cache.has(role.id)) return;
-                    else await message.member.roles.add(role.id);
-                }
-
-                if (user.level == 3) {
-                    let role = message.guild.roles.cache.find(role => role.name == "Level 3");
-                    if (!role) await message.guild.roles.create({
-                        data: {
-                            name: "Level 3",
-                            color: "#a2ff00",
-                        }
-                    }).catch(err => console.log(err));
-                    role = message.guild.roles.cache.find(role => role.name == "Level 3");
-                    if (message.member.roles.cache.has(role.id)) return;
-                    else await message.member.roles.add(role.id);
-                }
-
-                if (user.level == 4) {
-                    let role = message.guild.roles.cache.find(role => role.name == "Level 4");
-                    if (!role) await message.guild.roles.create({
-                        data: {
-                            name: "Level 4",
-                            color: "#b000ff",
-                        }
-                    }).catch(err => console.log(err));
-                    role = message.guild.roles.cache.find(role => role.name == "Level 4");
-                    if (message.member.roles.cache.has(role.id)) return;
-                    else await message.member.roles.add(role.id);
-                }
-
-                if (user.level == 5) {
-                    let role = message.guild.roles.cache.find(role => role.name == "Master");
-                    if (!role) await message.guild.roles.create({
-                        data: {
-                            name: "Master",
-                            color: "#daff00",
-                        }
-                    }).catch(err => console.log(err));
-                    role = message.guild.roles.cache.find(role => role.name == "Master");
-                    if (message.member.roles.cache.has(role.id)) return;
-                    else await message.member.roles.add(role.id);
-                }
-
-                if (user.level == 10) {
-                    let role = message.guild.roles.cache.find(role => role.name == "Grandmaster");
-                    if (!role) await message.guild.roles.create({
-                        data: {
-                            name: "Grandmaster",
-                            color: "#ff7d00",
-                        }
-                    }).catch(err => console.log(err));
-                    role = message.guild.roles.cache.find(role => role.name == "Grandmaster");
-                    if (message.member.roles.cache.has(role.id)) return;
-                    else await message.member.roles.add(role.id);
-                }
-
-                if (user.level == 15) {
-                    let role = message.guild.roles.cache.find(role => role.name == "Anh Hùng Bàn Phím");
-                    if (!role) await message.guild.roles.create({
-                        data: {
-                            name: "Anh Hùng Bàn Phím",
-                            color: "#ff0000",
-                        }
-                    }).catch(err => console.log(err));
-                    role = message.guild.roles.cache.find(role => role.name == "Anh Hùng Bàn Phím");
-                    if (message.member.roles.cache.has(role.id)) return;
-                    else await message.member.roles.add(role.id);
-                }
+            if (user.level == 1) {
+                let role = message.guild.roles.cache.find(role => role.name == "Level 1");
+                if (!role) await message.guild.roles.create({
+                    name: "Level 1",
+                    color: "#00f8ff",
+                }).catch(err => console.log(err));
+                role = message.guild.roles.cache.find(role => role.name == "Level 1");
+                if (message.member.roles.cache.has(role.id)) return;
+                else await addRoleSafely(message.member, role);
             }
-            //
-        } else if(data.toggle == 0) {
-            //
+
+            if (user.level == 2) {
+                let role = message.guild.roles.cache.find(role => role.name == "Level 2");
+                if (!role) await message.guild.roles.create({
+                    name: "Level 2",
+                    color: "#00ff89",
+                }).catch(err => console.log(err));
+                role = message.guild.roles.cache.find(role => role.name == "Level 2");
+                if (message.member.roles.cache.has(role.id)) return;
+                else await addRoleSafely(message.member, role);
+            }
+
+            if (user.level == 3) {
+                let role = message.guild.roles.cache.find(role => role.name == "Level 3");
+                if (!role) await message.guild.roles.create({
+                    name: "Level 3",
+                    color: "#a2ff00",
+                }).catch(err => console.log(err));
+                role = message.guild.roles.cache.find(role => role.name == "Level 3");
+                if (message.member.roles.cache.has(role.id)) return;
+                else await addRoleSafely(message.member, role);
+            }
+
+            if (user.level == 4) {
+                let role = message.guild.roles.cache.find(role => role.name == "Level 4");
+                if (!role) await message.guild.roles.create({
+                    name: "Level 4",
+                    color: "#b000ff",
+                }).catch(err => console.log(err));
+                role = message.guild.roles.cache.find(role => role.name == "Level 4");
+                if (message.member.roles.cache.has(role.id)) return;
+                else await addRoleSafely(message.member, role);
+            }
+
+            if (user.level == 5) {
+                let role = message.guild.roles.cache.find(role => role.name == "Master");
+                if (!role) await message.guild.roles.create({
+                    name: "Master",
+                    color: "#daff00",
+                }).catch(err => console.log(err));
+                role = message.guild.roles.cache.find(role => role.name == "Master");
+                if (message.member.roles.cache.has(role.id)) return;
+                else await addRoleSafely(message.member, role);
+            }
+
+            if (user.level == 10) {
+                let role = message.guild.roles.cache.find(role => role.name == "Grandmaster");
+                if (!role) await message.guild.roles.create({
+                    name: "Grandmaster",
+                    color: "#ff7d00",
+                }).catch(err => console.log(err));
+                role = message.guild.roles.cache.find(role => role.name == "Grandmaster");
+                if (message.member.roles.cache.has(role.id)) return;
+                else await addRoleSafely(message.member, role);
+            }
+
+            if (user.level == 15) {
+                let role = message.guild.roles.cache.find(role => role.name == "Anh Hùng Bàn Phím");
+                if (!role) await message.guild.roles.create({
+                    name: "Anh Hùng Bàn Phím",
+                    color: "#ff0000",
+                }).catch(err => console.log(err));
+                role = message.guild.roles.cache.find(role => role.name == "Anh Hùng Bàn Phím");
+                if (message.member.roles.cache.has(role.id)) return;
+                else await addRoleSafely(message.member, role);
+            }
         }
-    })
+    } else if(data.toggle == 0) {
+        //
+    }
 
     if (message.content.startsWith(prefix)) {
         const args = message.content.slice(prefix.length).trim().split(/ +/);
@@ -215,12 +224,12 @@ bot.on("message", async message => {
         if (command) {
             if (command.cooldown) {
                 if (Timeout.has(`${command.name}${message.author.id}`)) return message.channel.send(`Please Wait \`${ms(Timeout.get(`${command.name}${message.author.id}`) - Date.now(), { long: true })}\` Before using this command again!`);
-                command.run(bot, message, args)
+                await runCommand(command, bot, message, args)
                 Timeout.set(`${command.name}${message.author.id}`, Date.now() + command.cooldown)
                 setTimeout(() => {
                     Timeout.delete(`${command.name}${message.author.id}`)
                 }, command.cooldown)
-            } else command.run(bot, message, args);
+            } else await runCommand(command, bot, message, args);
         }
     }
 })
@@ -231,9 +240,12 @@ const LIMIT = 5;
 const TIME = 20000;
 const DIFF = 10000;
 
-bot.on('message', async(message) => {
+bot.on('messageCreate', async(message) => {
     if(message.author.bot) return;
-    if(db.has(`antispam-${message.guild.id}`) === false) return;
+    if (!message.guild) return;
+
+    const settings = await GuildSettings.findOne({ guildId: message.guild.id }).lean();
+    if(!settings?.antispam) return;
     if(usersMap.has(message.author.id)) {
         const userData = usersMap.get(message.author.id);
         const { lastMessage, timer } = userData;
@@ -263,19 +275,22 @@ bot.on('message', async(message) => {
                             permissions: []
                         })
                         message.guild.channels.cache.forEach(async (channel, id) => {
-                            await channel.createOverwrite(muterole, {
-                                SEND_MESSAGES: false,
-                                ADD_REACTIONS : false
+                            if (!channel.permissionOverwrites) return;
+                            await channel.permissionOverwrites.edit(muterole, {
+                                SendMessages: false,
+                                AddReactions : false
                             })
                         })
                     }catch (e) {
                         console.log(e)
                     }
                 }
-                message.member.roles.add(muterole);
+                await addRoleSafely(message.member, muterole);
                 bot.channels.cache.get('966237517059862610').send(`${message.author}, sống chậm lại nào!`);
                 setTimeout(() => {
-                    message.member.roles.remove(muterole);
+                    message.member.roles.remove(muterole).catch((error) => {
+                        console.warn(`Cannot remove role ${muterole.name} from ${message.author.tag}: ${error.message}`);
+                    });
                     bot.channels.cache.get('966237517059862610').send(`${message.author} đã được unmute!`)
                 }, TIME);
             } else {
@@ -297,19 +312,54 @@ bot.on('message', async(message) => {
     }
 })
 //--------------------------------------------------------------------------------------------------------------------\\
-const distube = require('distube');
-bot.distube = new distube(bot, { searchSongs: false, emitNewSongOnly: true })
+const { DisTube } = require('distube');
+const { YouTubePlugin } = require('@distube/youtube');
+bot.distube = new DisTube(bot, {
+    emitNewSongOnly: true,
+    plugins: [new YouTubePlugin()],
+})
 bot.distube
-    .on('playSong', (message, queue, song) => message.channel.send(
-        `Nghe bài \`${song.name}\` - \`${song.formattedDuration}\`\nThành viên yêu cầu: ${song.user}`,
+    .on('playSong', (queue, song) => queue.textChannel?.send(
+        `Nghe bài \`${song.name}\` - \`${song.formatDuration()}\`\nThành viên yêu cầu: ${song.user}`,
     ))
-    .on('addSong', (message, queue, song) => message.channel.send(
-        `Thêm bài ${song.name} - \`${song.formattedDuration}\` vào hàng đợi bởi ${song.user}`,
+    .on('addSong', (queue, song) => queue.textChannel?.send(
+        `Thêm bài ${song.name} - \`${song.formatDuration()}\` vào hàng đợi bởi ${song.user}`,
     ))
-    .on('error', (message, e) => {
+    .on('error', (error, queue) => {
 		//console.error(e)
-		message.channel.send(`Đã xảy ra lỗi: ${e}`)
+        const channel = queue?.textChannel;
+        if (channel) channel.send(`Đã xảy ra lỗi: ${error.message || error}`)
 	})
 
 
-bot.login(token);
+function runCommand(command, bot, message, args) {
+    const handler = command.run || command.execute;
+    if (!handler) return;
+    return handler(bot, message, args);
+}
+
+async function addRoleSafely(member, role) {
+    if (!member || !role) return false;
+    if (member.roles.cache.has(role.id)) return true;
+
+    try {
+        await member.roles.add(role);
+        return true;
+    } catch (error) {
+        console.warn(`Cannot add role ${role.name} to ${member.user.tag}: ${error.message}`);
+        return false;
+    }
+}
+
+async function start() {
+    try {
+        await mongoose.connect(MONGODB_URI);
+        console.log('Connected to mongo!');
+        await bot.login(DISCORD_TOKEN);
+    } catch (error) {
+        console.error('Failed to start bot:', error);
+        process.exit(1);
+    }
+}
+
+start();

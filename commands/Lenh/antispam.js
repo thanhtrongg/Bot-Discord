@@ -1,4 +1,4 @@
-const db = require('quick.db')
+const GuildSettings = require('../../Schema/guildSettings')
 
 module.exports = {
     name: 'antispam',
@@ -6,11 +6,21 @@ module.exports = {
 
     run : async(bot, message, args) => {
         if(args[0] === 'on'){
-            await db.set(`antispam-${message.guild.id}`, true)
+            await GuildSettings.findOneAndUpdate(
+                { guildId: message.guild.id },
+                { $set: { antispam: true } },
+                { upsert: true, returnDocument: 'after' }
+            )
             message.channel.send('Đã bật chức năng chống spam')
         } else if(args[0] === 'off') {
-            await db.delete(`antispam-${message.guild.id}`)
+            await GuildSettings.findOneAndUpdate(
+                { guildId: message.guild.id },
+                { $set: { antispam: false } },
+                { upsert: true, returnDocument: 'after' }
+            )
             message.channel.send('Đã tắt chức năng chống spam')
+        } else {
+            message.channel.send('Dùng `>antispam on` hoặc `>antispam off`')
         }
     }
 }

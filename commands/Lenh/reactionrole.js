@@ -14,6 +14,7 @@ module.exports = {
 
         const Role1 = message.guild.roles.cache.find(role => role.name === "DARK MEMBER")
         const Role2 = message.guild.roles.cache.find(role => role.name === "NSFW MEMBER")
+        if(!Role1 || !Role2) return message.reply("Không tìm thấy role `DARK MEMBER` hoặc `NSFW MEMBER`")
 
         const emoji1 = '👿';
         const emoji2 = '🔞';
@@ -34,12 +35,14 @@ module.exports = {
             if (user.bot) return;
             if (!reaction.message.guild) return;
 
-            if (reaction.message.channel.id == channelID) {
+            if (reaction.message.channel.id == channelID.id) {
                 if (reaction.emoji.name === emoji1) {
-                    await reaction.message.guild.members.cache.get(user.id).roles.add(Role1)
+                    const member = await reaction.message.guild.members.fetch(user.id)
+                    await member.roles.add(Role1)
                 }
                 if (reaction.emoji.name === emoji2) {
-                    await reaction.message.guild.members.cache.get(user.id).roles.add(Role2)
+                    const member = await reaction.message.guild.members.fetch(user.id)
+                    await member.roles.add(Role2)
                 }
             } else {
                 return;
@@ -52,12 +55,14 @@ module.exports = {
             if (user.bot) return;
             if (!reaction.message.guild) return;
 
-            if (reaction.message.channel.id == channelID) {
+            if (reaction.message.channel.id == channelID.id) {
                 if (reaction.emoji.name === emoji1) {
-                    await reaction.message.guild.members.cache.get(user.id).roles.remove(Role1)
+                    const member = await reaction.message.guild.members.fetch(user.id)
+                    await member.roles.remove(Role1)
                 }
                 if (reaction.emoji.name === emoji2) {
-                    await reaction.message.guild.members.cache.get(user.id).roles.remove(Role2)
+                    const member = await reaction.message.guild.members.fetch(user.id)
+                    await member.roles.remove(Role2)
                 }
             } else {
                 return;

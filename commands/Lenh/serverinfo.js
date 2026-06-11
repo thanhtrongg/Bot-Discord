@@ -4,26 +4,7 @@ module.exports = {
 	name: 'server-info',
 	category: 'extra',
 	run: async (bot, message, args) => {
-		let region;
-		switch (message.guild.region) {
-		case 'europe':
-			region = '🇪🇺 Europe';
-			break;
-		case 'us-east':
-			region = '🇺🇸 us-east';
-			break;
-		case 'us-west':
-			region = '🇺🇸 us-west';
-			break;
-		case 'us-south':
-			region = '🇺🇸 us-south';
-			break;
-		case 'us-central':
-			region = '🇺🇸 us-central';
-			break;
-		default:
-			region = 'Unknown';
-		}
+		const owner = await message.guild.fetchOwner();
 
 		const embed = new MessageEmbed()
 			.setThumbnail(message.guild.iconURL({ dynamic: true }))
@@ -32,7 +13,7 @@ module.exports = {
 			.addFields(
 				{
 					name: 'Chủ Nhóm: ',
-					value: message.guild.owner.user.tag,
+					value: owner.user.tag,
 					inline: true,
 				},
 				{
@@ -51,8 +32,8 @@ module.exports = {
 					inline: true,
 				},
 				{
-					name: '🗺 Quốc Gia: ',
-					value: region,
+					name: 'Server ID: ',
+					value: message.guild.id,
 					inline: true,
 				},
 				{

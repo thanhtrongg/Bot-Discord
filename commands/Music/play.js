@@ -11,6 +11,10 @@ module.exports = {
         const music = args.join(" "); //.play <args (song name)>
         if(!music) return message.reply("Ghi tên bài hát hoặc link bài hát!");
 
-        await bot.distube.play(message, music)
+        await bot.distube.play(message.member.voice.channel, music, {
+            member: message.member,
+            message,
+            textChannel: message.channel,
+        })
     }
 }

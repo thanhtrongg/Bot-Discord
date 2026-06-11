@@ -1,8 +1,4 @@
 const Discord = require('discord.js');
-const Kitsu = require('kitsu.js');
-const kitsu = new Kitsu();
-var aq = require('animequote');
-const fetch = require("node-fetch")
 
 module.exports =  {
   name: "anime",
@@ -16,30 +12,34 @@ module.exports =  {
       
     }
     //main part
-        var search = message.content.split(/\s+/g).slice(1).join(" ");
-        kitsu.searchAnime(search).then(async result => {
-            if (result.length === 0) {
-                return message.channel.send(`Không tìm thấy kết quả **${search}**!`);
-            }
-          
-          var anime = result[0]
+        const search = args.join(" ");
+        try {
+            const response = await fetch(`https://kitsu.io/api/edge/anime?filter[text]=${encodeURIComponent(search)}&page[limit]=1`);
+            if (!response.ok) throw new Error(`Kitsu request failed with status ${response.status}`);
+
+            const result = await response.json();
+            const anime = result.data?.[0]?.attributes;
+            if (!anime) return message.channel.send(`Không tìm thấy kết quả **${search}**!`);
+
+            const title = anime.titles?.en || anime.titles?.en_jp || anime.titles?.ja_jp || search;
+            const poster = anime.posterImage?.original || anime.posterImage?.large;
+            const synopsis = (anime.synopsis || 'Không có mô tả.').replace(/<[^>]*>/g, '').split('\n')[0];
 
             let embed = new Discord.MessageEmbed()
                 .setColor('#FF2050')
-                .setAuthor(`${anime.titles.english ? anime.titles.english : search} | ${anime.showType}`, anime.posterImage.original)
-                .setDescription(anime.synopsis.replace(/<[^>]*>/g, '').split('\n')[0])
-                .addField('❯\u2000\Information', `•\u2000\**Japanese Name:** ${anime.titles.romaji}\n\•\u2000\**Age Rating:** ${anime.ageRating}\n\•\u2000\**NSFW:** ${anime.nsfw ? 'Yes' : 'No'}`, true)
-                .addField('❯\u2000\Stats', `•\u2000\**Average Rating:** ${anime.averageRating}\n\•\u2000\**Rating Rank:** ${anime.ratingRank}\n\•\u2000\**Popularity Rank:** ${anime.popularityRank}`, true)
-                .addField('❯\u2000\Status', `•\u2000\**Episodes:** ${anime.episodeCount ? anime.episodeCount : 'N/A'}\n\•\u2000\**Start Date:** ${anime.startDate}\n\•\u2000\**End Date:** ${anime.endDate ? anime.endDate : "Still airing"}`, true)
-            
-                .setThumbnail(anime.posterImage.original, 100, 200);
-          
+                .setAuthor(`${title} | ${anime.showType || 'Anime'}`, poster)
+                .setDescription(synopsis)
+                .addField('❯ Information', `• Japanese Name: ${anime.titles?.ja_jp || 'N/A'}\n• Age Rating: ${anime.ageRating || 'N/A'}\n• NSFW: ${anime.nsfw ? 'Yes' : 'No'}`, true)
+                .addField('❯ Stats', `• Average Rating: ${anime.averageRating || 'N/A'}\n• Rating Rank: ${anime.ratingRank || 'N/A'}\n• Popularity Rank: ${anime.popularityRank || 'N/A'}`, true)
+                .addField('❯ Status', `• Episodes: ${anime.episodeCount || 'N/A'}\n• Start Date: ${anime.startDate || 'N/A'}\n• End Date: ${anime.endDate || 'Still airing'}`, true);
 
-            return message.channel.send({ embed })
-        }).catch(err => {
-            console.log(err) //cathing error
+            if (poster) embed.setThumbnail(poster);
+
+            return message.channel.send(embed)
+        } catch (err) {
+            console.log(err)
             return message.channel.send(`Không tìm thấy kết quả **${search}**!`);
-        });
+        }
     }
 
 }

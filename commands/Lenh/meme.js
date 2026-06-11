@@ -1,5 +1,5 @@
-const randomPuppy = require('random-puppy');
 const Discord = require('discord.js');
+const { getRandomRedditImage } = require('../../utils/reddit');
 
 module.exports = {
     name: "meme",
@@ -9,13 +9,19 @@ module.exports = {
         const subReddits = ["VietNam", "meme", "memes", "dankmeme"]
         const random = subReddits[Math.floor(Math.random() * subReddits.length)]
 
-        const img = await randomPuppy(random)
+        let post;
+        try {
+            post = await getRandomRedditImage(random)
+        } catch (error) {
+            console.warn(error.message)
+            return message.channel.send("Không lấy được meme lúc này, thử lại sau nha.")
+        }
 
         const embed = new Discord.MessageEmbed()
         .setColor("RANDOM")
-        .setImage(img)
-        .setTitle(`**meme**`)
-        .setURL(`https://reddit.com/r/${random}`)
+        .setImage(post.image)
+        .setTitle(post.title)
+        .setURL(post.url)
 
         message.channel.send(embed)
     }

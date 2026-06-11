@@ -5,43 +5,79 @@ module.exports = {
     description: "rock paper scissors command",
 
     async run (bot, message, args) {
-        let embed = new Discord.MessageEmbed()
-        .setTitle("Kéo Búa Bao")
-        .setDescription("Bắt đầu!")
-        .setTimestamp()
-        let msg = await message.channel.send(embed)
-        await msg.react("🔨")
-        await msg.react("✂")
-        await msg.react("📰")
-
-        const filter = (reaction, user) => {
-            return ['🔨', '✂', '📰'].includes(reaction.emoji.name) && user.id === message.author.id;
+        const choices = ['🔨', '✂️', '📄']
+        const labels = {
+            '🔨': 'Búa',
+            '✂️': 'Kéo',
+            '📄': 'Bao',
         }
 
-        const choices = ['🔨', '✂', '📰']
+        let embed = new Discord.MessageEmbed()
+        .setTitle("Kéo Búa Bao")
+        .setDescription("Chọn một biểu cảm bên dưới.")
+        .setTimestamp()
+
+        let msg = await message.channel.send(embed)
+        for (const choice of choices) {
+            await msg.react(choice)
+        }
+
+        const filter = (reaction, user) => {
+            return choices.includes(reaction.emoji.name) && user.id === message.author.id;
+        }
+
         const me = choices[Math.floor(Math.random() * choices.length)]
-        msg.awaitReactions(filter, {max: 1, time: 60000, error: ["time"]}).then(
-            async(collected) => {
-                const reaction = collected.first()
-                let result = new Discord.MessageEmbed()
-                .setTitle("Kết quả")
-                .addField("Bạn chọn", `${reaction.emoji.name}`)
-                .addField("Bot chọn", `${me}`)
-                await msg.edit(result)
 
-                if((me === "🔨" && reaction.emoji.name === "✂") ||
-                (me === "✂" && reaction.emoji.name === "📰") ||
-                (me === "📰" && reaction.emoji.name === "🔨")) {
-                    message.reply("Bạn thua!");
-                } else if (me === reaction.emoji.name) {
-                    return message.reply("Hòa!");
-                } else {
-                    return message.reply("Bạn thắng!");
-                }
+        try {
+            const collected = await msg.awaitReactions({
+                filter,
+                max: 1,
+                time: 60000,
+                errors: ["time"],
             })
-            .catch(collected => {
-                message.reply('Hết giờ suy nghĩ!');
-            }) 
 
+            const reaction = collected.first()
+            const player = reaction.emoji.name
+            const outcome = getOutcome(player, me)
+
+            let result = new Discord.MessageEmbed()
+            .setTitle("Kết quả")
+            .addField("Bạn chọn", `${player} ${labels[player]}`)
+            .addField("Bot chọn", `${me} ${labels[me]}`)
+            .setColor(outcome.color)
+
+            await msg.edit(result)
+            return message.reply(outcome.text)
+        } catch (error) {
+            return message.reply('Hết giờ suy nghĩ!');
+        }
+
+    }
+}
+
+function getOutcome(player, bot) {
+    if (player === bot) {
+        return {
+            text: 'Hòa!',
+            color: 'YELLOW',
+        }
+    }
+
+    const playerWins = (
+        (player === '🔨' && bot === '✂️') ||
+        (player === '✂️' && bot === '📄') ||
+        (player === '📄' && bot === '🔨')
+    )
+
+    if (playerWins) {
+        return {
+            text: 'Bạn thắng!',
+            color: 'GREEN',
+        }
+    }
+
+    return {
+        text: 'Bạn thua!',
+        color: 'RED',
     }
 }

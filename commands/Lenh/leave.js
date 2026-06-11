@@ -1,11 +1,11 @@
 module.exports = {
     name: 'leave',
     description: 'stop the bot and leave the channel',
-    async execute(message, args) {
+    async run(bot, message, args) {
         const voiceChannel = message.member.voice.channel;
  
         if(!voiceChannel) return message.channel.send("Bạn cần ở trong một kênh để thực hiện lệnh này!");
-        await voiceChannel.leave();
+        await bot.distube.voices.leave(message.guild);
         await message.channel.send('Bị đuổi rồi :smiling_face_with_tear:')
  
     }
