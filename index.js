@@ -372,17 +372,28 @@ bot.on("messageCreate", async (message) => {
   }
 });
 //--------------------------------------------------------------------------------------------------------------------\\
+const path = require("path");
 const ffmpegPath = require("ffmpeg-static");
 
-if (ffmpegPath) {
-  process.env.FFMPEG_PATH = ffmpegPath;
+if (!ffmpegPath) {
+  console.error(
+    "Không tìm thấy ffmpeg-static. Hãy chạy npm install ffmpeg-static",
+  );
+  process.exit(1);
 }
+
+process.env.PATH = `${path.dirname(ffmpegPath)}:${process.env.PATH}`;
+
+console.log("FFmpeg path:", ffmpegPath);
 
 const { DisTube } = require("distube");
 const { YouTubePlugin } = require("@distube/youtube");
 
 bot.distube = new DisTube(bot, {
   emitNewSongOnly: true,
+  ffmpeg: {
+    path: ffmpegPath,
+  },
   plugins: [new YouTubePlugin()],
 });
 
