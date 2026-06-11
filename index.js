@@ -374,6 +374,18 @@ bot.on("messageCreate", async (message) => {
 //--------------------------------------------------------------------------------------------------------------------\\
 const { DisTube } = require("distube");
 const { YouTubePlugin } = require("@distube/youtube");
+const { execSync } = require("child_process");
+
+try {
+  console.log(
+    "FFmpeg version:",
+    execSync("ffmpeg -version").toString().split("\n")[0],
+  );
+} catch (error) {
+  console.error(
+    "FFmpeg chưa có trong PATH. Railway chưa cài ffmpeg từ nixpacks.toml",
+  );
+}
 
 bot.distube = new DisTube(bot, {
   emitNewSongOnly: true,
@@ -397,15 +409,15 @@ bot.distube
     const channel = queue?.textChannel;
     if (!channel) return;
 
-    if (error?.message?.includes("429") || String(error).includes("429")) {
+    if (error?.errorCode === "FFMPEG_NOT_INSTALLED") {
       return channel.send(
-        "YouTube đang giới hạn request của bot. Thử lại sau vài phút hoặc đổi bài khác.",
+        "Railway chưa cài được ffmpeg. Kiểm tra `nixpacks.toml` đã nằm ngang `package.json` và đã deploy without cache chưa.",
       );
     }
 
-    if (error?.errorCode === "FFMPEG_NOT_INSTALLED") {
+    if (error?.message?.includes("429") || String(error).includes("429")) {
       return channel.send(
-        "Server Railway chưa cài ffmpeg. Kiểm tra file `nixpacks.toml` đã push lên chưa.",
+        "YouTube đang giới hạn request của bot. Thử lại sau vài phút.",
       );
     }
 
