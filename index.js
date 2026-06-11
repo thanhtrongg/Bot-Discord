@@ -372,28 +372,11 @@ bot.on("messageCreate", async (message) => {
   }
 });
 //--------------------------------------------------------------------------------------------------------------------\\
-const path = require("path");
-const ffmpegPath = require("ffmpeg-static");
-
-if (!ffmpegPath) {
-  console.error(
-    "Không tìm thấy ffmpeg-static. Hãy chạy npm install ffmpeg-static",
-  );
-  process.exit(1);
-}
-
-process.env.PATH = `${path.dirname(ffmpegPath)}:${process.env.PATH}`;
-
-console.log("FFmpeg path:", ffmpegPath);
-
 const { DisTube } = require("distube");
 const { YouTubePlugin } = require("@distube/youtube");
 
 bot.distube = new DisTube(bot, {
   emitNewSongOnly: true,
-  ffmpeg: {
-    path: ffmpegPath,
-  },
   plugins: [new YouTubePlugin()],
 });
 
@@ -412,11 +395,23 @@ bot.distube
     console.error(error);
 
     const channel = queue?.textChannel;
-    if (channel) {
-      channel
-        .send(`Đã xảy ra lỗi: ${error.message || error}`)
-        .catch(() => null);
+    if (!channel) return;
+
+    if (error?.message?.includes("429") || String(error).includes("429")) {
+      return channel.send(
+        "YouTube đang giới hạn request của bot. Thử lại sau vài phút hoặc đổi bài khác.",
+      );
     }
+
+    if (error?.errorCode === "FFMPEG_NOT_INSTALLED") {
+      return channel.send(
+        "Server Railway chưa cài ffmpeg. Kiểm tra file `nixpacks.toml` đã push lên chưa.",
+      );
+    }
+
+    return channel
+      .send(`Đã xảy ra lỗi: ${error.message || error}`)
+      .catch(() => null);
   });
 
 function runCommand(command, bot, message, args) {
