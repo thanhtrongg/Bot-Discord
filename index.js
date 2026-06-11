@@ -372,8 +372,6 @@ bot.on("messageCreate", async (message) => {
   }
 });
 //--------------------------------------------------------------------------------------------------------------------\\
-const { DisTube } = require("distube");
-const { YouTubePlugin } = require("@distube/youtube");
 const { execSync } = require("child_process");
 
 try {
@@ -386,6 +384,9 @@ try {
     "FFmpeg chưa có trong PATH. Railway chưa cài ffmpeg từ nixpacks.toml",
   );
 }
+
+const { DisTube } = require("distube");
+const { YouTubePlugin } = require("@distube/youtube");
 
 bot.distube = new DisTube(bot, {
   emitNewSongOnly: true,
